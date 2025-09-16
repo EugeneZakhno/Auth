@@ -2,12 +2,13 @@ package repository
 
 import (
 	"errors"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 
-	"g/Trae/Auth/models"
+	"subscription-service/models"
 )
 
 // MockSubscriptionRepository is a mock implementation of the SubscriptionRepository for testing
@@ -29,8 +30,8 @@ func (r *MockSubscriptionRepository) Create(subscription models.Subscription) (m
 	defer r.mutex.Unlock()
 
 	// Generate a new ID if not provided
-	if subscription.ID == "" {
-		subscription.ID = uuid.New().String()
+	if subscription.ID == 0 {
+		subscription.ID = len(r.subscriptions) + 1
 	}
 
 	// Set created and updated timestamps
@@ -39,7 +40,7 @@ func (r *MockSubscriptionRepository) Create(subscription models.Subscription) (m
 	subscription.UpdatedAt = now
 
 	// Store the subscription
-	r.subscriptions[subscription.ID] = subscription
+	r.subscriptions[strconv.Itoa(subscription.ID)] = subscription
 
 	return subscription, nil
 }
@@ -66,8 +67,14 @@ func (r *MockSubscriptionRepository) List(userID, serviceName string) ([]models.
 
 	for _, sub := range r.subscriptions {
 		// Apply filters if provided
-		if userID != "" && sub.UserID != userID {
-			continue
+		if userID != "" {
+			uid, err := uuid.Parse(userID)
+			if err != nil {
+				continue
+			}
+			if sub.UserID != uid {
+				continue
+			}
 		}
 		if serviceName != "" && sub.ServiceName != serviceName {
 			continue
@@ -90,7 +97,8 @@ func (r *MockSubscriptionRepository) Update(id string, subscription models.Subsc
 	}
 
 	// Update the subscription
-	subscription.ID = id
+	idInt, _ := strconv.Atoi(id)
+	subscription.ID = idInt
 	subscription.UpdatedAt = time.Now()
 	r.subscriptions[id] = subscription
 
@@ -131,9 +139,6 @@ func (r *MockSubscriptionRepository) CalculateTotalCost(userID, serviceName, sta
 		return 0, errors.New("start period cannot be after end period")
 	}
 
-	// Calculate the number of months in the period
-	months := (endDate.Year()-startDate.Year())*12 + int(endDate.Month()-startDate.Month()) + 1
-
 	// Get subscriptions that match the filters
 	subscriptions, err := r.List(userID, serviceName)
 	if err != nil {
@@ -162,8 +167,8 @@ func (r *MockSubscriptionRepository) CalculateTotalCost(userID, serviceName, sta
 
 		// Calculate effective end date
 		effectiveEndDate := endDate
-		if sub.EndDate != "" {
-			subEndDate, err := time.Parse("01-2006", sub.EndDate)
+		if sub.EndDate != nil {
+			subEndDate, err := time.Parse("01-2006", *sub.EndDate)
 			if err == nil && subEndDate.Before(endDate) {
 				effectiveEndDate = subEndDate
 			}

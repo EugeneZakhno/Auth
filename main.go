@@ -67,7 +67,7 @@ func main() {
 	// Start server
 	serverAddr := cfg.Server.Host + ":" + cfg.Server.Port
 	logger.Infof("Server starting on %s", serverAddr)
-	if err := router.Run(serverAddr); err != nil {
+	if err := router.Run("0.0.0.0:" + cfg.Server.Port); err != nil {
 		logger.Fatalf("Failed to start server: %v", err)
 	}
 }

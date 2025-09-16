@@ -12,11 +12,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	"g/Trae/Auth/config"
-	"g/Trae/Auth/handlers"
-	"g/Trae/Auth/logger"
-	"g/Trae/Auth/models"
-	"g/Trae/Auth/repository"
+	"subscription-service/config"
+	"subscription-service/handlers"
+	"subscription-service/logger"
+	"subscription-service/models"
+	"subscription-service/repository"
 )
 
 func setupTestRouter() *gin.Engine {
@@ -57,7 +57,7 @@ func TestCreateSubscription(t *testing.T) {
 	subscription := models.CreateSubscriptionRequest{
 		ServiceName: "Yandex Plus",
 		Price:       400,
-		UserID:      userID.String(),
+		UserID:      userID,
 		StartDate:   "07-2025",
 	}
 
@@ -82,7 +82,7 @@ func TestCreateSubscription(t *testing.T) {
 	// Check the response
 	assert.Equal(t, subscription.ServiceName, response.ServiceName)
 	assert.Equal(t, subscription.Price, response.Price)
-	assert.Equal(t, subscription.UserID, response.UserID)
+	assert.Equal(t, subscription.UserID.String(), response.UserID)
 	assert.Equal(t, subscription.StartDate, response.StartDate)
 }
 
@@ -94,7 +94,7 @@ func TestGetSubscription(t *testing.T) {
 	subscription := models.CreateSubscriptionRequest{
 		ServiceName: "Netflix",
 		Price:       700,
-		UserID:      userID.String(),
+		UserID:      userID,
 		StartDate:   "01-2024",
 	}
 
@@ -125,7 +125,7 @@ func TestGetSubscription(t *testing.T) {
 	assert.Equal(t, createResponse.ID, getResponse.ID)
 	assert.Equal(t, subscription.ServiceName, getResponse.ServiceName)
 	assert.Equal(t, subscription.Price, getResponse.Price)
-	assert.Equal(t, subscription.UserID, getResponse.UserID)
+	assert.Equal(t, subscription.UserID.String(), getResponse.UserID)
 	assert.Equal(t, subscription.StartDate, getResponse.StartDate)
 }
 
@@ -138,13 +138,13 @@ func TestListSubscriptions(t *testing.T) {
 		{
 			ServiceName: "Spotify",
 			Price:       199,
-			UserID:      userID.String(),
+			UserID:      userID,
 			StartDate:   "03-2024",
 		},
 		{
 			ServiceName: "YouTube Premium",
 			Price:       299,
-			UserID:      userID.String(),
+			UserID:      userID,
 			StartDate:   "04-2024",
 		},
 	}
@@ -186,19 +186,19 @@ func TestCalculateTotalCost(t *testing.T) {
 		{
 			ServiceName: "Netflix",
 			Price:       700,
-			UserID:      userID1.String(),
+			UserID:      userID1,
 			StartDate:   "01-2024",
 		},
 		{
 			ServiceName: "Spotify",
 			Price:       199,
-			UserID:      userID1.String(),
+			UserID:      userID1,
 			StartDate:   "02-2024",
 		},
 		{
 			ServiceName: "YouTube Premium",
 			Price:       299,
-			UserID:      userID2.String(),
+			UserID:      userID2,
 			StartDate:   "03-2024",
 		},
 	}
