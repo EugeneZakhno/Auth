@@ -14,14 +14,16 @@ import (
 
 // SubscriptionHandler handles HTTP requests for subscriptions
 type SubscriptionHandler struct {
-	repo   *repository.SubscriptionRepository
-	logger *logger.Logger
+	Repo   interface{} // Can be either SubscriptionRepository or MockSubscriptionRepository
+	Logger *logger.Logger
+	repo   *repository.SubscriptionRepository // For backward compatibility
+	logger *logger.Logger                     // For backward compatibility
 }
 
 // NewSubscriptionHandler creates a new subscription handler
 func NewSubscriptionHandler(db *db.PostgresDB, logger *logger.Logger) *SubscriptionHandler {
 	repo := repository.NewSubscriptionRepository(db)
-	return &SubscriptionHandler{repo: repo, logger: logger}
+	return &SubscriptionHandler{Repo: repo, Logger: logger}
 }
 
 // Create godoc
@@ -38,33 +40,57 @@ func NewSubscriptionHandler(db *db.PostgresDB, logger *logger.Logger) *Subscript
 func (h *SubscriptionHandler) Create(c *gin.Context) {
 	var req models.CreateSubscriptionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Errorf("Failed to bind JSON: %v", err)
+		h.Logger.Errorf("Failed to bind JSON: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := req.Validate(); err != nil {
-		h.logger.Errorf("Validation error: %v", err)
+		h.Logger.Errorf("Validation error: %v", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	id, err := h.repo.Create(&req)
-	if err != nil {
-		h.logger.Errorf("Failed to create subscription: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create subscription"})
-		return
-	}
+	if mockRepo, ok := h.Repo.(*repository.MockSubscriptionRepository); ok {
+		// Using mock repository
+		id, err := mockRepo.Create(&req)
+		if err != nil {
+			h.Logger.Errorf("Failed to create subscription: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create subscription"})
+			return
+		}
 
-	subscription, err := h.repo.GetByID(id)
-	if err != nil {
-		h.logger.Errorf("Failed to get created subscription: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve created subscription"})
-		return
-	}
+		subscription, err := mockRepo.GetByID(id)
+		if err != nil {
+			h.Logger.Errorf("Failed to get created subscription: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve created subscription"})
+			return
+		}
 
-	h.logger.Infof("Created subscription with ID: %d", id)
-	c.JSON(http.StatusCreated, subscription)
+		h.Logger.Infof("Created subscription with ID: %d", id)
+		c.JSON(http.StatusCreated, subscription)
+	} else if repo, ok := h.Repo.(*repository.SubscriptionRepository); ok {
+		// Using real repository
+		id, err := repo.Create(&req)
+		if err != nil {
+			h.Logger.Errorf("Failed to create subscription: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create subscription"})
+			return
+		}
+
+		subscription, err := repo.GetByID(id)
+		if err != nil {
+			h.Logger.Errorf("Failed to get created subscription: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve created subscription"})
+			return
+		}
+
+		h.Logger.Infof("Created subscription with ID: %d", id)
+		c.JSON(http.StatusCreated, subscription)
+	} else {
+		h.Logger.Error("Unknown repository type")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+	}
 }
 
 // Get godoc
@@ -82,20 +108,37 @@ func (h *SubscriptionHandler) Get(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		h.logger.Errorf("Invalid ID: %s", idStr)
+		h.Logger.Errorf("Invalid ID: %s", idStr)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid subscription ID"})
 		return
 	}
 
-	subscription, err := h.repo.GetByID(id)
-	if err != nil {
-		h.logger.Errorf("Failed to get subscription: %v", err)
-		c.JSON(http.StatusNotFound, gin.H{"error": "Subscription not found"})
-		return
-	}
+	if mockRepo, ok := h.Repo.(*repository.MockSubscriptionRepository); ok {
+		// Using mock repository
+		subscription, err := mockRepo.GetByID(id)
+		if err != nil {
+			h.Logger.Errorf("Failed to get subscription: %v", err)
+			c.JSON(http.StatusNotFound, gin.H{"error": "Subscription not found"})
+			return
+		}
 
-	h.logger.Infof("Retrieved subscription with ID: %d", id)
-	c.JSON(http.StatusOK, subscription)
+		h.Logger.Infof("Retrieved subscription with ID: %d", id)
+		c.JSON(http.StatusOK, subscription)
+	} else if repo, ok := h.Repo.(*repository.SubscriptionRepository); ok {
+		// Using real repository
+		subscription, err := repo.GetByID(id)
+		if err != nil {
+			h.Logger.Errorf("Failed to get subscription: %v", err)
+			c.JSON(http.StatusNotFound, gin.H{"error": "Subscription not found"})
+			return
+		}
+
+		h.Logger.Infof("Retrieved subscription with ID: %d", id)
+		c.JSON(http.StatusOK, subscription)
+	} else {
+		h.Logger.Error("Unknown repository type")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+	}
 }
 
 // List godoc
