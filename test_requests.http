@@ -1,12 +1,38 @@
+
+### get all
 GET http://localhost:8081//api/v1/subscriptions
 ###
 
+### get by ID
+GET http://localhost:8081//api/v1/subscriptions/1
+
+
+### create new subscription
 POST http://localhost:8081//api/v1/subscriptions
 Content-Type: application/json
 
 {
-"service_name" : "Shmandex Minus",
-"price": 1200,
-"user_id": "60601fee-2bf1-4721-ae6f-7636e79a0c78",
-"start_date": "03-2009"
+"service_name" : "Tripolus Cringus",
+"price": 1500,
+"user_id": "60601fee-2bf1-5721-ae6f-7636e79a0c90",
+"start_date": "07-2025",
+"end_date": "09-2025"
 }
+
+### Update subscr.
+PUT http://localhost:8081//api/v1/subscriptions/4
+Content-Type: application/json
+
+{
+  "service_name" : "Sahmandex Minus+",
+  "price": 1300,
+  "user_id": "60601fee-2bf1-4721-ae6f-7636e79a0c78",
+  "start_date": "05-2019",
+  "end_date": "09-2025"
+}
+
+### Delete subscr.
+DELETE http://localhost:8081//api/v1/subscriptions/5
+
+### calculate
+GET http://localhost:8081//api/v1/subscriptions/calculate

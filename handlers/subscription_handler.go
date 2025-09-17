@@ -23,7 +23,7 @@ type SubscriptionHandler struct {
 // NewSubscriptionHandler creates a new subscription handler
 func NewSubscriptionHandler(db *db.PostgresDB, logger *logger.Logger) *SubscriptionHandler {
 	repo := repository.NewSubscriptionRepository(db)
-	return &SubscriptionHandler{Repo: repo, Logger: logger}
+	return &SubscriptionHandler{Repo: repo, Logger: logger, repo: repo, logger: logger}
 }
 
 // Create godoc
@@ -53,21 +53,21 @@ func (h *SubscriptionHandler) Create(c *gin.Context) {
 
 	if mockRepo, ok := h.Repo.(*repository.MockSubscriptionRepository); ok {
 		// Using mock repository
-		id, err := mockRepo.Create(&req)
+		createdSub, err := mockRepo.Create(&req)
 		if err != nil {
 			h.Logger.Errorf("Failed to create subscription: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create subscription"})
 			return
 		}
 
-		subscription, err := mockRepo.GetByID(id)
+		subscription, err := mockRepo.GetByID(createdSub.ID)
 		if err != nil {
 			h.Logger.Errorf("Failed to get created subscription: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve created subscription"})
 			return
 		}
 
-		h.Logger.Infof("Created subscription with ID: %d", id)
+		h.Logger.Infof("Created subscription with ID: %d", createdSub.ID)
 		c.JSON(http.StatusCreated, subscription)
 	} else if repo, ok := h.Repo.(*repository.SubscriptionRepository); ok {
 		// Using real repository

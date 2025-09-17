@@ -25,32 +25,37 @@ func NewMockSubscriptionRepository() *MockSubscriptionRepository {
 }
 
 // Create adds a new subscription to the mock repository
-func (r *MockSubscriptionRepository) Create(subscription *models.CreateSubscriptionRequest) (models.Subscription, error) {
+func (r *MockSubscriptionRepository) Create(request *models.CreateSubscriptionRequest) (models.Subscription, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
-	// Generate a new ID if not provided
-	if subscription.ID == 0 {
-		subscription.ID = len(r.subscriptions) + 1
+	// Create a new subscription from the request
+	newID := len(r.subscriptions) + 1
+	now := time.Now()
+
+	subscription := models.Subscription{
+		ID:          newID,
+		ServiceName: request.ServiceName,
+		Price:       request.Price,
+		UserID:      request.UserID,
+		StartDate:   request.StartDate,
+		EndDate:     request.EndDate,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
-	// Set created and updated timestamps
-	now := time.Now()
-	subscription.CreatedAt = now
-	subscription.UpdatedAt = now
-
-	// Store the subscription
-	r.subscriptions[strconv.Itoa(subscription.ID)] = subscription
+	// Store the subscription using string key
+	r.subscriptions[strconv.Itoa(newID)] = subscription
 
 	return subscription, nil
 }
 
 // GetByID retrieves a subscription by its ID
-func (r *MockSubscriptionRepository) GetByID(id models.Subscription) (models.Subscription, error) {
+func (r *MockSubscriptionRepository) GetByID(id int) (models.Subscription, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
-	subscription, exists := r.subscriptions[id]
+	subscription, exists := r.subscriptions[strconv.Itoa(id)]
 	if !exists {
 		return models.Subscription{}, errors.New("subscription not found")
 	}
