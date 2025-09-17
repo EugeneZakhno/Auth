@@ -1,13 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "A REST service for aggregating data on users' online subscriptions",
-        "title": "Subscription Service API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "host": "localhost:8080",
-    "basePath": "/api/v1",
     "paths": {
         "/subscriptions": {
             "get": {
@@ -377,8 +372,7 @@
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string",
-                    "format": "uuid"
+                    "type": "string"
                 }
             }
         },
@@ -386,8 +380,7 @@
             "type": "object",
             "properties": {
                 "created_at": {
-                    "type": "string",
-                    "format": "date-time"
+                    "type": "string"
                 },
                 "end_date": {
                     "type": "string"
@@ -405,12 +398,10 @@
                     "type": "string"
                 },
                 "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
+                    "type": "string"
                 },
                 "user_id": {
-                    "type": "string",
-                    "format": "uuid"
+                    "type": "string"
                 }
             }
         },
@@ -431,8 +422,7 @@
                     "type": "string"
                 },
                 "user_id": {
-                    "type": "string",
-                    "format": "uuid"
+                    "type": "string"
                 }
             }
         }

@@ -1,0 +1,12 @@
+GET http://localhost:8081//api/v1/subscriptions
+###
+
+POST http://localhost:8081//api/v1/subscriptions
+Content-Type: application/json
+
+{
+"service_name" : "Shmandex Minus",
+"price": 1200,
+"user_id": "60601fee-2bf1-4721-ae6f-7636e79a0c78",
+"start_date": "03-2009"
+}

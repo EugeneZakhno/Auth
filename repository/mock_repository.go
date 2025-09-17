@@ -25,7 +25,7 @@ func NewMockSubscriptionRepository() *MockSubscriptionRepository {
 }
 
 // Create adds a new subscription to the mock repository
-func (r *MockSubscriptionRepository) Create(subscription models.Subscription) (models.Subscription, error) {
+func (r *MockSubscriptionRepository) Create(subscription *models.CreateSubscriptionRequest) (models.Subscription, error) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 
@@ -46,7 +46,7 @@ func (r *MockSubscriptionRepository) Create(subscription models.Subscription) (m
 }
 
 // GetByID retrieves a subscription by its ID
-func (r *MockSubscriptionRepository) GetByID(id string) (models.Subscription, error) {
+func (r *MockSubscriptionRepository) GetByID(id models.Subscription) (models.Subscription, error) {
 	r.mutex.RLock()
 	defer r.mutex.RUnlock()
 
